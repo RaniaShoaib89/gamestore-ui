@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Lock, LogIn } from 'lucide-react';
+import { User, Lock, Mail, LogIn } from 'lucide-react';
 
-function LoginPage() {
+function SignupPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
     password: ''
   });
   const [error, setError] = useState('');
@@ -20,30 +21,24 @@ function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch('http://localhost:3001/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important for session handling
         body: JSON.stringify(formData),
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+        throw new Error(data.message || 'Signup failed');
       }
 
-      const data = await response.json();
-      // Store user data in localStorage
-      localStorage.setItem('userId', data.user.id);
-      localStorage.setItem('username', data.user.username);
-      localStorage.setItem('role', data.user.role);
-      
-      // After successful login, navigate to games page
-      navigate('/games');
+      // After successful signup, navigate to login page
+      navigate('/login');
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      setError(err.message);
     }
   };
 
@@ -52,7 +47,7 @@ function LoginPage() {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div>
           <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+            Create your account
           </h1>
         </div>
         {error && <p className="text-red-500 text-center">{error}</p>}
@@ -70,12 +65,32 @@ function LoginPage() {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Username"
                   required
                 />
               </div>
             </div>
+
+            <div className="relative">
+              <label htmlFor="email" className="sr-only">Email</label>
+              <div className="flex items-center">
+                <span className="absolute left-3 text-gray-400">
+                  <Mail size={20} />
+                </span>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Email"
+                  required
+                />
+              </div>
+            </div>
+
             <div className="relative">
               <label htmlFor="password" className="sr-only">Password</label>
               <div className="flex items-center">
@@ -88,7 +103,7 @@ function LoginPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Password"
                   required
                 />
@@ -96,23 +111,22 @@ function LoginPage() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-          >
-            <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-              <LogIn size={20} className="group-hover:text-indigo-400" />
-            </span>
-            Sign in
-          </button>
+          <div>
+            <button
+              type="submit"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Sign up
+            </button>
+          </div>
 
-          <div className="text-center mt-4">
+          <div className="text-center">
             <button
               type="button"
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate('/login')}
               className="text-indigo-600 hover:text-indigo-500"
             >
-              Don't have an account? Sign up
+              Already have an account? Sign in
             </button>
           </div>
         </form>
@@ -121,4 +135,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default SignupPage;
