@@ -1,121 +1,144 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User, Lock, LogIn } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { GamepadIcon, Gamepad2 } from 'lucide-react';
 
 function LoginPage() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
-  const [error, setError] = useState('');
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
+
     try {
       const response = await fetch('http://localhost:3001/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important for session handling
-        body: JSON.stringify(formData),
+        credentials: 'include',
+        body: JSON.stringify({ username, password }),
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
-      }
 
       const data = await response.json();
-      // Store user data in localStorage
-      localStorage.setItem('userId', data.user.id);
-      localStorage.setItem('username', data.user.username);
-      localStorage.setItem('role', data.user.role);
-      
-      // After successful login, navigate to games page
-      navigate('/games');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      // Check if user is admin
+      if (data.isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/games');
+      }
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      console.error('Login error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
-        <div>
-          <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h1>
+    <div className="min-h-screen bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* <div className="flex justify-center">
+          <GamepadIcon className="h-12 w-12 text-blue-500" />
+        </div> */}
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+          Sign in to your account
+        </h2>
+      </div>
+
+      <div className="flex flex-col items-center mt-8 mb-6">
+        <div className="flex items-center space-x-2">
+          <div className="relative">
+            <Gamepad2 className="h-10 w-10 text-blue-500" />
+            <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+              Game Haven
+            </span>
+            <span className="text-xs text-gray-400 text-center">Your Gaming Paradise</span>
+          </div>
         </div>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div className="space-y-4">
-            <div className="relative">
-              <label htmlFor="username" className="sr-only">Username</label>
-              <div className="flex items-center">
-                <span className="absolute left-3 text-gray-400">
-                  <User size={20} />
-                </span>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-gray-800 py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-300">
+                Username
+              </label>
+              <div className="mt-1">
                 <input
-                  type="text"
                   id="username"
                   name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Username"
+                  type="text"
                   required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 bg-gray-700 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
             </div>
-            <div className="relative">
-              <label htmlFor="password" className="sr-only">Password</label>
-              <div className="flex items-center">
-                <span className="absolute left-3 text-gray-400">
-                  <Lock size={20} />
-                </span>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+                Password
+              </label>
+              <div className="mt-1">
                 <input
-                  type="password"
                   id="password"
                   name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Password"
+                  type="password"
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 bg-gray-700 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-          >
-            <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-              <LogIn size={20} className="group-hover:text-indigo-400" />
-            </span>
-            Sign in
-          </button>
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
+                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {loading ? 'Signing in...' : 'Sign in'}
+              </button>
+            </div>
+          </form>
 
-          <div className="text-center mt-4">
-            <button
-              type="button"
-              onClick={() => navigate('/signup')}
-              className="text-indigo-600 hover:text-indigo-500"
-            >
-              Don't have an account? Sign up
-            </button>
+          <div className="mt-6">
+            <div className="relative">
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gray-800 text-gray-400">
+                  Don't have an account?{' '}
+                  <Link to="/signup" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                    Sign up
+                  </Link>
+                </span>
+              </div>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

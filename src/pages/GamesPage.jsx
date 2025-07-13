@@ -92,19 +92,19 @@ function GamesPage() {
   }, [searchQuery, selectedGenre]);
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
     </div>
   );
   
   if (error) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-red-500">Error: {error}</div>
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="text-red-400">Error: {error}</div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <Navbar 
         onSearch={setSearchQuery}
         searchQuery={searchQuery}
@@ -114,35 +114,58 @@ function GamesPage() {
           setSelectedGenre(value);
           setSearchQuery('');
         }}
+        className="bg-white/10 backdrop-blur-lg border-b border-white/10"
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        <h1 className="text-3xl font-bold text-white mb-8">
           {selectedGenre ? `${selectedGenre} Games` : 'Featured Games'}
         </h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {games.map((game) => (
             <div 
               key={game.game_ID} 
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden cursor-pointer"
+              className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 hover:border-purple-400/50 shadow-lg hover:shadow-purple-500/10 transition-all duration-300 overflow-hidden cursor-pointer"
               onClick={() => navigate(`/details/${game.game_ID}`)}
             >
-              <div className="aspect-w-16 aspect-h-9 bg-gray-200">
-                {/* Add game image here if available */}
-                <div className="flex items-center justify-center bg-gray-100">
-                  <GamepadIcon className="h-12 w-12 text-gray-400" />
-                </div>
+              <div className="w-full h-48 bg-white/5 group-hover:scale-105 transition-transform duration-300">
+                {game.image_url ? (
+                  <img
+                    src={game.image_url}
+                    alt={game.title}
+                    className="w-full h-48 object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.style.display = 'none';
+                      e.target.parentElement.innerHTML = `
+                        <div class="flex items-center justify-center h-48">
+                          <GamepadIcon class="h-12 w-12 text-white/50" />
+                        </div>
+                      `;
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-48">
+                    <GamepadIcon className="h-12 w-12 text-white/50" />
+                  </div>
+                )}
               </div>
               <div className="p-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">{game.title}</h2>
-                <p className="text-sm text-gray-500 mb-4 line-clamp-2">{game.description}</p>
+                <h2 className="text-lg font-semibold text-white mb-2 group-hover:text-purple-300 transition-colors duration-300">
+                  {game.title}
+                </h2>
+                <p className="text-sm text-white/70 mb-4 line-clamp-2">
+                  {game.description}
+                </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-blue-600">${game.price}</span>
+                  <span className="text-lg font-bold text-purple-300">
+                    ${game.price}
+                  </span>
                   <div className="flex gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white border border-white/20">
                       {game.genre}
                     </span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-400/10 text-purple-300 border border-purple-400/20">
                       {game.platform}
                     </span>
                   </div>
